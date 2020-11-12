@@ -65,34 +65,36 @@ onetask() {
     
     if [[ -e $obs1 && -e $obs2 && -e $obs3 && -e $obs4 ]]; then
 	OMP_NUM_THREADS=$num_threads ./run.sh $obs1 $obs2 $obs3 $obs4 $outdir > /dev/null
-	if [ $0 == 2 ]; then
+	if [ $? == 2 ]; then
 	    echo "$outdir: window not processed while one date does not contain signal"  | tee -a results/allrun.log
 	else
-	    echo "$outdir: processed"
+	    echo "$outdir: processed" | tee -a results/allrun.log
+
+	    # Calcul de la date de forecast
+	    t30=$obs4
+	    for z in {1..6}; do
+		t30=$(next_file $t30)
+	    done
+	    t60=$t30
+	    for z in {1..6}; do
+		t60=$(next_file $t60)
+	    done
+	    
+	    mv $outdir/F30.npy results/$t30
+	    mv $outdir/F60.npy results/$t60
+
 	fi
     else
 	echo "$outdir: window not processed while one date missed"  | tee -a results/allrun.log
     fi
     
-    # Calcul de la date de forecast
-    t30=$obs4
-    for z in {1..6}; do
-	t30=$(next_file $t30)
-    done
-    t60=$t30
-    for z in {1..6}; do
-	t60=$(next_file $t60)
-    done
-    
-    mv $outdir/F30.npy results/$t30
-    mv $outdir/F60.npy results/$t60
 }
     
 
 if [[ -d $dir ]] ; then
     mkdir -p results/val
     rm -f results/allrun.log
-
+    touch results/allrun.log
     for M in M{1..12}; do
 	for d in d{1..31} ; do
 	    for h in h{0..23} ; do
@@ -106,6 +108,7 @@ if [[ -d $dir ]] ; then
 		    done
 
 		    jobs -x onetask $M $d $h $m $dir &
+
 		done
 	    done
 	done
