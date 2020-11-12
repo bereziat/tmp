@@ -21,12 +21,14 @@ if [[ -n $(find $dir -name 'ResMotion_iter*.inr') ]]; then
 else
     # MOTION ESTIMATION
     raz >$dir/init/W0.inr $(par $1 -x -y) -r -v 2
-    cco >$dir/init/Q0.inr -r $1 
-    create >$dir/init/Obs.inr $(par $1 -x -y) -r -z 3
-    for z in $1 $2 $3; do
-	cco -r $z | inrcat >> $dir/init/Obs.inr
+    cco -r $1 | fmoy -x 5 -y 5 >$dir/init/Q0.inr
+    create >$dir/init/tmp.inr $(par $1 -x -y) -r -z 3
+    for z in $2 $3 $4; do
+	cco -r $z | inrcat >> $dir/init/tmp.inr
     done
-
+    fmoy -x 5 -y 5  $dir/init/tmp.inr >  $dir/init/Obs.inr
+    rm  $dir/init/tmp.inr
+    
     mh -n $ThreshIm $dir/init/Obs.inr | cco -r | sc -n 25 > $dir/init/Rm1.inr
     mb -n $ThreshIm $dir/init/Obs.inr | cco -r | sc -n 0.04 | ad - $dir/init/Rm1.inr $dir/init/Rm1.inr
 
