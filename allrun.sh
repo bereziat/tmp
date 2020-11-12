@@ -80,8 +80,8 @@ onetask() {
 		t60=$(next_file $t60)
 	    done
 	    
-	    mv $outdir/F30.npy results/$t30
-	    mv $outdir/F60.npy results/$t60
+	    mv $outdir/F30.npy results/${t30/val/val/F30}
+	    mv $outdir/F60.npy results/${t60/val/val/F60}
 
 	fi
     else
@@ -92,7 +92,7 @@ onetask() {
     
 
 if [[ -d $dir ]] ; then
-    mkdir -p results/val
+    mkdir -p results/val/{F30,F60}
     rm -f results/allrun.log
     touch results/allrun.log
     for M in M{1..12}; do
@@ -106,9 +106,11 @@ if [[ -d $dir ]] ; then
 		    do 
 			sleep 4      # check again after 4 seconds
 		    done
-
+#		    if [[ ! -e "results/$M-$d-$h-$m/QObs.inr" ]]; then
 		    jobs -x onetask $M $d $h $m $dir &
-
+#		    else
+#			echo "=> results/$M-$d-$h-$m already processed!"
+#		    fi
 		done
 	    done
 	done
